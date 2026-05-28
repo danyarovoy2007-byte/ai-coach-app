@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Coach {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  title       String
+  avatarUrl   String?
+  accentColor String    @default("#A86A6A")
+  programTitle String   @default("Путь к себе")
+  tasks       String    @default("[]") // JSON array of task definitions
+  clients     Client[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Client {
+  id          String         @id @default(cuid())
+  telegramId  String         @unique
+  name        String
+  age         Int?
+  experience  String?
+  goal        String?
+  coachId     String
+  coach       Coach          @relation(fields: [coachId], references: [id])
+  progress    Int            @default(0)
+  messages    Message[]
+  responses   TaskResponse[]
+  achievements ClientAchievement[]
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  role      String   // AI or USER
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model TaskResponse {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  taskOrder Int
+  format    String
+  content   String   // JSON: text answer, checklist items, slider value, etc.
+  createdAt DateTime @default(now())
+
+  @@unique([clientId, taskOrder])
+}
+
+model Achievement {
+  id          String             @id @default(cuid())
+  key         String             @unique // first_step, three_days, week_streak, full_path
+  title       String
+  description String
+  xp          Int
+  condition   String             // JSON condition
+  clients     ClientAchievement[]
+}
+
+model ClientAchievement {
+  id            String      @id @default(cuid())
+  clientId      String
+  client        Client      @relation(fields: [clientId], references: [id])
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([clientId, achievementId])
+}
