@@ -1,5 +1,25 @@
 import { create } from "zustand";
 
+/* ── Color helpers for white-label ── */
+const hexToRgb = (hex: string): [number, number, number] | null => {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : null;
+};
+
+const lighten = (hex: string, factor: number): string => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const mix = (c: number) => Math.round(c + (255 - c) * factor);
+  return `rgb(${mix(rgb[0])}, ${mix(rgb[1])}, ${mix(rgb[2])})`;
+};
+
+const darken = (hex: string, factor: number): string => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const mix = (c: number) => Math.round(c * factor);
+  return `rgb(${mix(rgb[0])}, ${mix(rgb[1])}, ${mix(rgb[2])})`;
+};
+
 /* ── Types ── */
 
 export type Tab = "quest" | "chat" | "profile";
@@ -114,7 +134,20 @@ export const useStore = create<AppState>((set) => ({
   coach: DEFAULT_COACH,
   setCoach: (coach) => {
     if (typeof document !== "undefined") {
-      document.documentElement.style.setProperty("--accent-bold", coach.accentColor);
+      const root = document.documentElement.style;
+      const hex = coach.accentColor;
+
+      // Derive accent family: lighter, darker, glow, gradient stops
+      const rgb = hexToRgb(hex);
+      if (rgb) {
+        root.setProperty("--accent", hex);
+        root.setProperty("--accent-bold", hex);
+        root.setProperty("--accent-deep", darken(hex, 0.75));
+        root.setProperty("--accent-soft", lighten(hex, 0.55));
+        root.setProperty("--accent-glow", lighten(hex, 0.35));
+        root.setProperty("--gradient-cta", `linear-gradient(135deg, ${hex}, ${darken(hex, 0.8)})`);
+        root.setProperty("--gradient-gold", `linear-gradient(135deg, ${lighten(hex, 0.5)}, ${hex})`);
+      }
     }
     set({ coach });
   },

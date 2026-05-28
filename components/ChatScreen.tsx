@@ -69,7 +69,9 @@ export function ChatScreen() {
 
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Auto-scroll
   useEffect(() => {
@@ -181,6 +183,36 @@ export function ChatScreen() {
     }
   };
 
+  // Voice input via Web Speech API
+  const toggleVoice = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const rec = new SpeechRecognition();
+    rec.lang = "ru-RU";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+
+    rec.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput((prev) => prev ? `${prev} ${transcript}` : transcript);
+      setIsListening(false);
+    };
+
+    rec.onerror = () => setIsListening(false);
+    rec.onend = () => setIsListening(false);
+
+    recognitionRef.current = rec;
+    rec.start();
+    setIsListening(true);
+  }, [isListening]);
+
   return (
     <div
       style={{
@@ -200,7 +232,11 @@ export function ChatScreen() {
             <span className="dot-online" /> AI-коуч · онлайн
           </div>
         </div>
-        <button className="m-header__action" style={{ color: "var(--accent-bold)" }}>
+        <button
+          className="m-header__action"
+          style={{ color: isListening ? "var(--accent-deep)" : "var(--accent-bold)" }}
+          onClick={toggleVoice}
+        >
           <Icon.Mic size={22} />
         </button>
       </div>
@@ -349,6 +385,24 @@ export function ChatScreen() {
             fontSize: 14,
           }}
         />
+        <motion.button
+          className="btn-icon"
+          whileTap={{ scale: 0.9 }}
+          onClick={toggleVoice}
+          style={{
+            background: isListening ? "var(--accent-soft)" : "var(--bg-muted)",
+            border: isListening ? "2px solid var(--accent-bold)" : "1px solid var(--border-subtle)",
+            borderRadius: "50%",
+            width: 40,
+            height: 40,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: isListening ? "var(--accent-deep)" : "var(--text-secondary)",
+          }}
+        >
+          <Icon.Mic size={18} />
+        </motion.button>
         <motion.button
           className="btn-icon"
           whileTap={{ scale: 0.9, rotate: 15 }}
