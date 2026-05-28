@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { Icon } from "./Icons";
 import { useStore } from "@/store";
 
-export function ProfileScreen() {
+export function ProfileScreen({ onSettingsClick }: { onSettingsClick: () => void }) {
   const coach = useStore((s) => s.coach);
   const clientName = useStore((s) => s.clientName);
   const progress = useStore((s) => s.progress);
@@ -71,6 +71,7 @@ export function ProfileScreen() {
           </div>
           <button
             className="tap"
+            onClick={onSettingsClick}
             style={{
               width: 40,
               height: 40,
@@ -80,6 +81,7 @@ export function ProfileScreen() {
               display: "grid",
               placeItems: "center",
               color: "var(--text-secondary)",
+              cursor: "pointer",
             }}
           >
             <Icon.Gear size={20} />

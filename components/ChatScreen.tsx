@@ -83,9 +83,10 @@ export function ChatScreen() {
   // Welcome message on first mount
   useEffect(() => {
     if (messages.length === 0) {
+      const id = `welcome-${Date.now()}`;
       setTimeout(() => {
         addMessage({
-          id: "welcome",
+          id,
           role: "AI",
           text: `Привет! Я твой AI-коуч. Расскажи, как ты сейчас?`,
           time: "сейчас",

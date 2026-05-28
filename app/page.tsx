@@ -15,6 +15,7 @@ import { ChatScreen } from "@/components/ChatScreen";
 import { ProfileScreen } from "@/components/ProfileScreen";
 import { BottomNav } from "@/components/BottomNav";
 import { TaskModal } from "@/components/TaskModal";
+import { SettingsModal } from "@/components/SettingsModal";
 import type { Tab } from "@/store";
 
 type Route = "splash" | "onboarding" | "main";
@@ -22,6 +23,7 @@ type Route = "splash" | "onboarding" | "main";
 export default function Home() {
   const [route, setRoute] = useState<Route>("splash");
   const [clientExists, setClientExists] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const tab = useStore((s) => s.tab);
   const setTab = useStore((s) => s.setTab);
   const setClientName = useStore((s) => s.setClientName);
@@ -173,7 +175,7 @@ export default function Home() {
                 transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                 style={{ position: "absolute", inset: 0 }}
               >
-                <ProfileScreen />
+                <ProfileScreen onSettingsClick={() => setShowSettings(true)} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -187,6 +189,9 @@ export default function Home() {
                 taskIndex={activeTaskIndex}
                 onClose={() => setActiveTaskIndex(null)}
               />
+            )}
+            {showSettings && (
+              <SettingsModal onClose={() => setShowSettings(false)} />
             )}
           </AnimatePresence>
         </motion.div>

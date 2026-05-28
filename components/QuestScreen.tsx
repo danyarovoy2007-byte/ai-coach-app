@@ -13,18 +13,19 @@ export function QuestScreen() {
   const dayIdx = Math.min(progress, tasks.length - 1);
   const pct = Math.round((progress / tasks.length) * 100);
 
-  // SVG path layout
+  // SVG snake path — more organic layout
   const W = 350;
-  const ROW = 74;
-  const TOP = 46;
-  const CL = 68;
-  const CR = 278;
-  const R = 22;
+  const ROW = 76;
+  const TOP = 50;
+  const CL = 64;
+  const CR = 282;
+  const R = 23;
 
   const nodes = tasks.map((_, i) => {
-    const j = ((i * 137) % 7) - 3;
+    const offset = Math.sin(i * 0.8) * 10;
+    const stagger = (i % 3 - 1) * 8;
     return {
-      x: (i % 2 === 0 ? CL : CR) + j,
+      x: (i % 2 === 0 ? CL : CR) + offset + stagger,
       y: TOP + i * ROW,
       i,
     };
@@ -35,7 +36,11 @@ export function QuestScreen() {
     const p0 = nodes[i - 1];
     const p1 = nodes[i];
     const goR = p1.x > p0.x;
-    d += ` C ${goR ? p0.x + 100 : p0.x - 100} ${p0.y + 20}, ${goR ? p1.x - 100 : p1.x + 100} ${p1.y - 20}, ${p1.x} ${p1.y}`;
+    const dx = Math.abs(p1.x - p0.x);
+    const dy = Math.abs(p1.y - p0.y);
+    const cpx = dx * 0.6;
+    const cpy = dy * 0.5;
+    d += ` C ${goR ? p0.x + cpx : p0.x - cpx} ${p0.y + cpy}, ${goR ? p1.x - cpx : p1.x + cpx} ${p1.y - cpy}, ${p1.x} ${p1.y}`;
   }
   const H = TOP + (nodes.length - 1) * ROW + 80;
 
@@ -64,7 +69,7 @@ export function QuestScreen() {
         </button>
       </div>
 
-      {/* Atmosphere */}
+      {/* Atmosphere glow orbs */}
       <div className="atmo">
         <div className="atmo-orb atmo-orb--rose" />
         <div className="atmo-orb atmo-orb--gold" />
@@ -72,31 +77,38 @@ export function QuestScreen() {
 
       {/* Daily task card */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, y: 20, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         style={{ padding: "14px 18px", position: "relative", zIndex: 1 }}
       >
-        <div className="card-daily" style={{ padding: 18 }}>
+        <div
+          className="card-daily"
+          style={{
+            padding: 20,
+            border: "1px solid color-mix(in oklab, var(--accent-soft) 60%, transparent)",
+          }}
+        >
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 14,
-              marginBottom: 12,
+              marginBottom: 14,
             }}
           >
             <div
               style={{
-                width: 48,
-                height: 48,
+                width: 52,
+                height: 52,
                 borderRadius: "var(--radius-full)",
                 background: "var(--gradient-cta)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 22,
-                boxShadow: "0 4px 12px rgba(168,106,106,0.25)",
+                fontSize: 24,
+                boxShadow: "0 4px 16px rgba(168,106,106,0.22)",
+                flexShrink: 0,
               }}
             >
               {tasks[dayIdx].emoji}
@@ -106,8 +118,9 @@ export function QuestScreen() {
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 700,
-                  fontSize: 17,
+                  fontSize: 18,
                   letterSpacing: "-0.01em",
+                  marginBottom: 2,
                 }}
               >
                 Задание {dayIdx + 1}
@@ -116,7 +129,7 @@ export function QuestScreen() {
                 style={{
                   fontSize: 13,
                   color: "var(--text-secondary)",
-                  marginTop: 3,
+                  lineHeight: 1.4,
                 }}
               >
                 {tasks[dayIdx].title}
@@ -124,53 +137,101 @@ export function QuestScreen() {
             </div>
             <motion.button
               className="btn-primary"
-              whileTap={{ scale: 0.96 }}
-              style={{ height: 42, padding: "0 20px", fontSize: 14 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              style={{ height: 44, padding: "0 22px", fontSize: 14, flexShrink: 0 }}
               onClick={() => setActiveTaskIndex(dayIdx)}
             >
               Начать
             </motion.button>
           </div>
-          <div className="progress">
-            <span className="progress__fill" style={{ width: `${pct}%` }} />
+          {/* Progress bar */}
+          <div className="progress" style={{ height: 6, borderRadius: 3 }}>
+            <span className="progress__fill" style={{ width: `${pct}%`, borderRadius: 3 }} />
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 6,
+              fontSize: 11,
+              color: "var(--text-muted)",
+            }}
+          >
+            <span>{pct}% пройдено</span>
+            <span>{tasks.length - progress} осталось</span>
           </div>
         </div>
       </motion.div>
 
-      {/* SVG Path */}
+      {/* SVG Snake Path */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         style={{ padding: "0 20px", position: "relative", zIndex: 1 }}
       >
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          width={W}
+          width="100%"
           height={H}
-          style={{ display: "block" }}
+          style={{ display: "block", maxWidth: W, margin: "0 auto" }}
         >
-          {/* Background path */}
+          <defs>
+            {/* Glow filter */}
+            <filter id="node-glow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+
+            {/* Gradients */}
+            <linearGradient id="g-path" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--accent-soft)" />
+              <stop offset="50%" stopColor="var(--accent)" />
+              <stop offset="100%" stopColor="var(--accent-deep)" />
+            </linearGradient>
+            <linearGradient id="g-node" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--accent)" />
+              <stop offset="100%" stopColor="var(--accent-deep)" />
+            </linearGradient>
+
+            {/* Active node pulse animation */}
+            <radialGradient id="g-pulse">
+              <stop offset="0%" stopColor="var(--accent-bold)" stopOpacity="0.3">
+                <animate attributeName="stop-opacity" values="0.3;0.6;0.3" dur="3s" repeatCount="indefinite" />
+              </stop>
+              <stop offset="100%" stopColor="var(--accent-bold)" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
+          {/* Background path (dotted) */}
           <path
             d={d}
             fill="none"
             stroke="var(--border-subtle)"
             strokeWidth="2.5"
-            strokeDasharray="6 4"
+            strokeDasharray="5 5"
             strokeLinecap="round"
-            opacity="0.7"
-          />
-          {/* Completed portion */}
-          <path
-            d={d}
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="2.5"
-            strokeDasharray={`${progress * 76} ${H * 2}`}
-            strokeLinecap="round"
-            opacity="0.9"
+            opacity="0.6"
           />
 
+          {/* Completed path segment */}
+          {progress > 0 && (
+            <path
+              d={d}
+              fill="none"
+              stroke="url(#g-path)"
+              strokeWidth="3"
+              strokeDasharray={`${progress * 76} ${H * 2}`}
+              strokeLinecap="round"
+              opacity="0.85"
+              style={{
+                transition: "stroke-dasharray 0.8s var(--ease-in)",
+              }}
+            />
+          )}
+
+          {/* Nodes */}
           {nodes.map((n, i) => {
             const done = i < progress;
             const active = i === progress;
@@ -183,32 +244,35 @@ export function QuestScreen() {
                 style={{ cursor: locked ? "default" : "pointer" }}
                 onClick={() => !locked && setActiveTaskIndex(i)}
               >
-                {/* Active glow ring */}
+                {/* Active pulse ring */}
                 {active && (
-                  <>
-                    <motion.circle
-                      r={R + 16}
-                      fill="var(--accent)"
-                      initial={{ opacity: 0.03 }}
-                      animate={{ opacity: [0.03, 0.1, 0.03], r: [R + 12, R + 24, R + 12] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                    <circle
-                      r={R + 7}
-                      fill="none"
-                      stroke="var(--accent-bold)"
-                      strokeWidth="2"
-                      opacity="0.55"
-                    />
-                  </>
+                  <circle
+                    r={R + 18}
+                    fill="url(#g-pulse)"
+                    filter="url(#node-glow)"
+                  />
                 )}
 
-                {/* Node */}
+                {/* Active ring */}
+                {active && (
+                  <circle
+                    r={R + 6}
+                    fill="none"
+                    stroke="var(--accent-bold)"
+                    strokeWidth="2.5"
+                    opacity="0.6"
+                  >
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="r" values={String(R + 6)} from={String(R + 6)} to={String(R + 12)} dur="2s" repeatCount="indefinite" />
+                  </circle>
+                )}
+
+                {/* Main node circle */}
                 <circle
                   r={R}
                   fill={
                     done
-                      ? "url(#g-rose)"
+                      ? "url(#g-node)"
                       : active
                       ? "var(--bg-primary)"
                       : "var(--bg-muted)"
@@ -220,17 +284,21 @@ export function QuestScreen() {
                       ? "var(--accent-bold)"
                       : "var(--border-subtle)"
                   }
-                  strokeWidth={active ? 2.5 : 1.2}
+                  strokeWidth={active ? 2.5 : 1.5}
+                  style={{
+                    filter: done ? "url(#node-glow)" : "none",
+                    transition: "all 0.5s var(--ease-in)",
+                  }}
                 />
 
-                {/* Content */}
+                {/* Node content */}
                 {done ? (
                   <text
                     x="0"
                     y="1"
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fontSize="14"
+                    fontSize="15"
                     fill="var(--accent-deep)"
                     fontWeight="700"
                   >
@@ -242,7 +310,7 @@ export function QuestScreen() {
                     y="1"
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fontSize="15"
+                    fontSize="14"
                     fontWeight="700"
                     fill="var(--accent-bold)"
                   >
@@ -256,38 +324,32 @@ export function QuestScreen() {
 
                 {/* Label */}
                 <text
-                  x={i % 2 === 0 ? R + 14 : -(R + 14)}
-                  y="4"
+                  x={i % 2 === 0 ? R + 15 : -(R + 15)}
+                  y="5"
                   textAnchor={i % 2 === 0 ? "start" : "end"}
                   dominantBaseline="central"
                   fontFamily="var(--font-body)"
                   fontSize="12"
                   fill={locked ? "var(--text-muted)" : "var(--text-primary)"}
                   fontWeight={active ? 600 : 400}
+                  style={{ transition: "all 0.4s ease" }}
                 >
                   {tasks[i].title}
                 </text>
               </g>
             );
           })}
-
-          <defs>
-            <linearGradient id="g-rose" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="var(--accent-soft)" />
-              <stop offset="100%" stopColor="var(--accent)" />
-            </linearGradient>
-          </defs>
         </svg>
       </motion.div>
 
-      {/* Achievement */}
+      {/* Achievement card */}
       {progress >= 3 && (
         <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          initial={{ opacity: 0, y: 30, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{
-            duration: 0.6,
-            delay: 0.16,
+            duration: 0.7,
+            delay: 0.2,
             ease: [0.34, 1.56, 0.64, 1],
           }}
           style={{ padding: "10px 18px 18px", position: "relative", zIndex: 1 }}
@@ -297,47 +359,51 @@ export function QuestScreen() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
-              padding: "14px 16px",
+              gap: 14,
+              padding: "16px 18px",
             }}
           >
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 50,
+                height: 50,
                 borderRadius: "var(--radius-full)",
                 background: "var(--gradient-gold)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(201,168,76,0.30)",
+                boxShadow: "0 4px 20px rgba(201,168,76,0.35)",
+                flexShrink: 0,
               }}
             >
-              <Icon.Star size={16} />
+              <Icon.Star size={18} />
             </div>
             <div style={{ flex: 1 }}>
               <div
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 600,
-                  fontSize: 14,
+                  fontSize: 15,
+                  marginBottom: 3,
                 }}
               >
-                {progress >= 10
+                {progress >= tasks.length
                   ? "Весь путь пройден!"
                   : progress >= 7
                   ? "Больше половины!"
                   : "Три дня подряд"}
               </div>
               <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                {progress >= 10
-                  ? "Ты прошёл все задания"
+                {progress >= tasks.length
+                  ? "Ты прошёл все задания. Горжусь тобой."
                   : progress >= 7
-                  ? "Формируется привычка"
-                  : "Формируется привычка"}
+                  ? "Нейронные связи укрепляются с каждым днём."
+                  : "Первые 3 дня — самые важные. Ты справился."}
               </div>
             </div>
-            <span className="badge">+100 XP</span>
+            <span className="badge">
+              +{progress >= tasks.length ? 500 : progress >= 7 ? 300 : 150} XP
+            </span>
           </div>
         </motion.div>
       )}
