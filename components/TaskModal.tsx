@@ -26,10 +26,22 @@ export function TaskModal({ taskIndex, onClose }: ModalProps) {
       return;
     }
 
-    setProgress(progress + 1);
+    const newProgress = progress + 1;
+    setProgress(newProgress);
 
     // Save to API if we have a telegramId
     if (telegramId) {
+      const achievementsToCheck: string[] = [];
+
+      // Progress-based achievements
+      if (newProgress >= 1) achievementsToCheck.push("first_step");
+      if (newProgress >= 3) achievementsToCheck.push("three_days");
+      if (newProgress >= 7) achievementsToCheck.push("week_streak");
+      if (newProgress >= coach.tasks.length) achievementsToCheck.push("full_path");
+
+      // Format-based achievements
+      if (task.format === "MEDITATION") achievementsToCheck.push("first_meditation");
+
       try {
         await fetch("/api/tasks", {
           method: "POST",
@@ -41,6 +53,15 @@ export function TaskModal({ taskIndex, onClose }: ModalProps) {
             content: responseContent || JSON.stringify({ completed: true }),
           }),
         });
+
+        // Check and unlock achievements
+        for (const key of achievementsToCheck) {
+          fetch("/api/achievements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ telegramId, achievementKey: key }),
+          }).catch(() => {});
+        }
       } catch {
         // Silently fail — state is already updated locally
       }

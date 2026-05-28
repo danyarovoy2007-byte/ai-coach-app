@@ -10,6 +10,7 @@ export function ProfileScreen() {
   const progress = useStore((s) => s.progress);
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
+  const unlockedAchievements = useStore((s) => s.unlockedAchievements);
 
   const pct = Math.round((progress / coach.tasks.length) * 100);
   const daysInRow = Math.min(progress, 12);
@@ -164,24 +165,27 @@ export function ProfileScreen() {
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              { unlocked: progress >= 1, title: "Первый шаг", desc: "Выполнил первое задание", xp: 50 },
-              { unlocked: progress >= 3, title: "Три дня подряд", desc: "Формируется привычка", xp: 100 },
-              { unlocked: progress >= 7, title: "Неделя в потоке", desc: "7 дней практики", xp: 250 },
-              { unlocked: progress >= 11, title: "Весь путь", desc: "Все 11 заданий пройдены", xp: 500 },
-            ].map((a, i) => (
-              <motion.div
+              { key: "first_step", title: "Первый шаг", desc: "Выполнил первое задание", xp: 50 },
+              { key: "three_days", title: "Три дня подряд", desc: "Формируется привычка", xp: 150 },
+              { key: "week_streak", title: "Неделя в потоке", desc: "7 дней практики", xp: 300 },
+              { key: "full_path", title: "Весь путь", desc: "Все 11 заданий пройдены", xp: 500 },
+              { key: "first_meditation", title: "Осознанность", desc: "Завершил первую медитацию", xp: 100 },
+              { key: "first_chat", title: "Откровенный разговор", desc: "Первый диалог с коучем", xp: 75 },
+            ].map((a, i) => {
+              const isUnlocked = unlockedAchievements.some((ua) => ua.key === a.key);
+              return (<motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06 }}
-                className={a.unlocked ? "card-glass" : "card"}
+                className={isUnlocked ? "card-glass" : "card"}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
                   padding: "14px 16px",
-                  opacity: a.unlocked ? 1 : 0.5,
-                  filter: a.unlocked ? "none" : "grayscale(0.5)",
+                  opacity: isUnlocked ? 1 : 0.5,
+                  filter: isUnlocked ? "none" : "grayscale(0.5)",
                 }}
               >
                 <div
@@ -189,18 +193,18 @@ export function ProfileScreen() {
                     width: 42,
                     height: 42,
                     borderRadius: "var(--radius-full)",
-                    background: a.unlocked
+                    background: isUnlocked
                       ? "var(--gradient-gold)"
                       : "var(--bg-muted)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: a.unlocked
+                    boxShadow: isUnlocked
                       ? "0 4px 16px rgba(201,168,76,0.30)"
                       : "none",
                   }}
                 >
-                  {a.unlocked ? (
+                  {isUnlocked ? (
                     <Icon.Star size={16} />
                   ) : (
                     <Icon.Lock size={14} />
@@ -212,9 +216,10 @@ export function ProfileScreen() {
                     {a.desc}
                   </div>
                 </div>
-                {a.unlocked && <span className="badge">+{a.xp} XP</span>}
+                {isUnlocked && <span className="badge">+{a.xp} XP</span>}
               </motion.div>
-            ))}
+            );
+            })}
           </div>
         </div>
 

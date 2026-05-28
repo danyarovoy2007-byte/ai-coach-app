@@ -106,13 +106,22 @@ export function ChatScreen() {
       setInput("");
       setIsTyping(true);
 
-      // Save user message to API
+      // Save user message to API + check first_chat achievement
       if (telegramId) {
         fetch("/api/messages", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ telegramId, role: "USER", text: userMsg.text }),
         }).catch(() => {});
+
+        // Unlock "first chat" achievement on first message
+        if (messages.filter((m) => m.role === "USER").length === 0) {
+          fetch("/api/achievements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ telegramId, achievementKey: "first_chat" }),
+          }).catch(() => {});
+        }
       }
 
       try {

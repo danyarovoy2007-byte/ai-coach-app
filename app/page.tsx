@@ -31,6 +31,7 @@ export default function Home() {
   const setActiveTaskIndex = useStore((s) => s.setActiveTaskIndex);
   const setMessages = useStore((s) => s.setMessages);
   const setProgress = useStore((s) => s.setProgress);
+  const setAchievements = useStore((s) => s.setAchievements);
 
   // Init Telegram
   useEffect(() => {
@@ -44,8 +45,9 @@ export default function Home() {
         fetch(`/api/client?telegramId=${user.id}`).then((r) => r.ok ? r.json() : null),
         fetch(`/api/messages?telegramId=${user.id}`).then((r) => r.ok ? r.json() : null),
         fetch(`/api/tasks?telegramId=${user.id}`).then((r) => r.ok ? r.json() : null),
+        fetch(`/api/achievements?telegramId=${user.id}`).then((r) => r.ok ? r.json() : null),
       ])
-        .then(([clientData, messagesData, tasksData]) => {
+        .then(([clientData, messagesData, tasksData, achievementsData]) => {
           if (clientData?.client) {
             setClientName(clientData.client.name);
             setProgress(clientData.client.progress || 0);
@@ -59,6 +61,9 @@ export default function Home() {
               time: "",
             }));
             setMessages(msgs);
+          }
+          if (achievementsData?.achievements) {
+            setAchievements(achievementsData.achievements);
           }
         })
         .catch(() => {});

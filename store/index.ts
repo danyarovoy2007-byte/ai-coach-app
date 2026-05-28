@@ -27,6 +27,14 @@ export interface Message {
   time: string;
 }
 
+export interface Achievement {
+  key: string;
+  title: string;
+  description: string;
+  xp: number;
+  unlockedAt?: string;
+}
+
 export interface AppState {
   /* Theme */
   theme: "light" | "dark";
@@ -56,6 +64,10 @@ export interface AppState {
   /* Task modal */
   activeTaskIndex: number | null;
   setActiveTaskIndex: (i: number | null) => void;
+
+  /* Achievements */
+  unlockedAchievements: Achievement[];
+  setAchievements: (a: Achievement[]) => void;
 
   /* Telegram user */
   telegramId: string | null;
@@ -119,6 +131,9 @@ export const useStore = create<AppState>((set) => ({
 
   activeTaskIndex: null,
   setActiveTaskIndex: (activeTaskIndex) => set({ activeTaskIndex }),
+
+  unlockedAchievements: [],
+  setAchievements: (unlockedAchievements) => set({ unlockedAchievements }),
 
   telegramId: null,
   setTelegramId: (telegramId) => set({ telegramId }),
